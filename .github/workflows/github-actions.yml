@@ -1,26 +1,35 @@
 name: assignment-test
 on:
-    push:
-        tags-ignore:
-            - '*'
-        branches:
-            - '*'
+  push:
+    branches:
+      - '*'
+
 jobs:
-    unit-test:
-        container: cuaesd/aesd-autotest:24-unit-test
-        runs-on: self-hosted
-        steps:
-          - uses: actions/checkout@v2
-          - name: Checkout submodules
-            run : git submodule update --init --recursive
-          - name: Run unit test
-            run: ./unit-test.sh
-    full-test:
-        container: cuaesd/aesd-autotest:24-assignment2
-        runs-on: self-hosted
-        steps:
-          - uses: actions/checkout@v2
-          - name: Checkout submodules
-            run : git submodule update --init --recursive
-          - name: Run full test
-            run: ./full-test.sh
+  # Job 1: Basic unit tests for Assignment 2 logic
+  unit-test:
+    container: cuaesd/aesd-autotest:24-unit-test
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v2
+      - name: Checkout submodules
+        run: git submodule update --init --recursive
+      - name: Run unit test
+        run: ./unit-test.sh
+      - name: Fix workspace permissions
+        if: always()
+        run: chown -R 1000:1000 .
+
+  # Job 2: The specific Assignment 2 full test suite
+  full-test-assignment2:
+    container: cuaesd/aesd-autotest:24-assignment2
+    runs-on: self-hosted
+    needs: unit-test
+    steps:
+      - uses: actions/checkout@v2
+      - name: Checkout submodules
+        run: git submodule update --init --recursive
+      - name: Run full test
+        run: ./full-test.sh
+      - name: Fix workspace permissions
+        if: always()
+        run: chown -R 1000:1000 .
